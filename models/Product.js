@@ -54,6 +54,14 @@ const buildMockModel = () => {
       console.log("new product is saved", newProduct);
       return toPlainObject(newProduct);
     },
+    async findByIdAndUpdate(id, update, options = {}) {
+      const idx = products.findIndex((item) => item._id === id);
+      if (idx === -1) return null;
+      // shallow merge
+      products[idx] = { ...products[idx], ...update };
+      const updated = toPlainObject(products[idx]);
+      return options.new ? updated : toPlainObject(products[idx]);
+    },
   };
 };
 

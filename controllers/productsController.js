@@ -71,6 +71,80 @@ productsController.add_post = async (req, res) => {
   }
 };
 
+productsController.edit_get = async (req, res) => {
+  const id = req.params.id;
+  try {
+    const product = toPlain(await Product.findById(id));
+    if (!product) {
+      res.redirect("/");
+      return;
+    }
+    res.render("edit", {
+      product,
+      editError: req.flash("editError"),
+      isFood: product.category === "food",
+      isDrinks: product.category === "drinks",
+      isOther: product.category === "other",
+    });
+  } catch (err) {
+    res.json(err.message);
+  }
+};
+
+productsController.edit_post = async (req, res) => {
+  const id = req.params.id;
+  const { title, price, description, category } = req.body;
+  const image = req.file;
+
+  if (!title || !price || !description || !category) {
+    req.flash("editError", "All fields are required");
+    res.redirect(`/product/${id}/edit`);
+    return;
+  }
+
+  try {
+    const existing = toPlain(await Product.findById(id));
+    if (!existing) {
+      req.flash("editError", "Product not found");
+      res.redirect("/");
+      return;
+    }
+
+    const updatedData = {
+      title,
+      price,
+      description,
+      category,
+    };
+
+    if (image) {
+      // remove old image file if any
+      if (existing.image) {
+        const filePath = path.join(process.cwd(), "uploads", existing.image);
+        fs.unlink(filePath, (err) => {
+          // ignore error
+        });
+      }
+      updatedData.image = image.path.split(path.sep).pop();
+    } else {
+      // keep old image
+      updatedData.image = existing.image;
+    }
+
+    // Works both for mongoose model and our mock model
+    if (typeof Product.findByIdAndUpdate === "function") {
+      await Product.findByIdAndUpdate(id, updatedData, { new: true });
+    } else {
+      // fallback: try to replace by creating a new object (shouldn't happen)
+      await Product.create({ _id: id, ...updatedData });
+    }
+
+    res.redirect(`/product/${id}`);
+  } catch (err) {
+    res.json(err.message);
+  }
+};
+
 productsController.about_get = async (req, res) => {
   const id = req.params.id;
   fs.writeFile("test.txt", id, (err) => {
