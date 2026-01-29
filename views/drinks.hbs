@@ -37,6 +37,9 @@
         </div>
         <div class="card-footer">
           <a type="button" class="btn btn-outline-primary" href="/product/{{_id}}">About</a>
+          {{#if user}}
+            <a type="button" class="btn btn-outline-secondary ms-2" href="/product/{{_id}}/edit">Edit</a>
+          {{/if}}
         </div>
       </div>
     </div>

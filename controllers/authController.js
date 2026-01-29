@@ -63,7 +63,8 @@ authController.login_post = async function (req, res) {
 
 // Sign up
 authController.register_get = function (req, res) {
-  if (req.cookies.jwt) {
+  // Only redirect if a valid user is present (set by checkUser middleware)
+  if (res.locals && res.locals.user) {
     res.redirect("/");
     return;
   }
